@@ -1,20 +1,23 @@
-const express = require('express');
 const fetch = require('node-fetch');
-const app = express();
-const cors = require('cors');
 
-app.use(cors());
+module.exports = async (req, res) => {
+  const { query } = req.query;
 
-app.get('/naver', async (req, res) => {
-  const query = req.query.query;
-  const response = await fetch(`https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(query)}&display=10&sort=comment`, {
-    headers: {
-      'X-Naver-Client-Id': 'N_B4B8U_dLcjxirtKaBo',
-      'X-Naver-Client-Secret': 'ArBHdc_qzh'
-    }
-  });
-  const data = await response.json();
-  res.json(data);
-});
+  if (!query) {
+    return res.status(400).json({ error: 'Missing query' });
+  }
 
-module.exports = app;
+  try {
+    const response = await fetch(`https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(query)}&display=10&sort=comment`, {
+      headers: {
+        'X-Naver-Client-Id': 'N_B4B8U_dLcjxirtKaBo',
+        'X-Naver-Client-Secret': 'ArBHdc_qzh'
+      }
+    });
+
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Proxy failed', detail: err.message });
+  }
+};
